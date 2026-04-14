@@ -1,5 +1,4 @@
 class TicketPage {
-
     constructor(page) {
         this.page = page;
         this.passport = '#passport';
@@ -27,10 +26,14 @@ class TicketPage {
 
     async submit() {
         await this.page.click(this.button);
+        // Ждем, пока результат не появится и не станет не пустым
+        await this.page.waitForSelector('#result:not(:empty)');
     }
 
     async getResult() {
-        return this.page.locator(this.result).textContent();
+        const resultElement = this.page.locator(this.result);
+        await resultElement.waitFor({ state: 'visible' });
+        return resultElement.textContent();
     }
 }
 

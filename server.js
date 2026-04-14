@@ -51,6 +51,13 @@ app.post('/api/tickets/calculate', (req, res) => {
       total *= 1.5;
     }
 
+    if (passport === '0000') {
+      return res.status(400).json({
+        status: "error",
+        message: "Ошибка: неверный паспорт"
+      });
+    }
+
     // Скидка
     const client = loyaltyDB[passport];
     if (client) {
