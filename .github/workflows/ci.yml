@@ -1,0 +1,123 @@
+name: Full CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  # =========================
+  # UNIT TESTS (JEST)
+  # =========================
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+
+  # =========================
+  # API TESTS (CUCUMBER)
+  # =========================
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Start server
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000
+
+      - name: Run API tests
+        run: npm run test:api
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cucumber-report
+          path: report.html
+
+  # =========================
+  # UI TESTS (PLAYWRIGHT)
+  # =========================
+  ui-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install browsers
+        run: npx playwright install --with-deps
+
+      - name: Start server
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000
+
+      - name: Run UI tests
+        run: npm run test:ui
+
+      - name: Upload UI report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  # =========================
+  # TELEGRAM NOTIFICATION
+  # =========================
+  notify:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests, ui-tests]
+    if: always()
+
+    steps:
+      - name: Send Telegram message
+        run: |
+          if [ "${{ needs.unit-tests.result }}" = "success" ] && \
+             [ "${{ needs.api-tests.result }}" = "success" ] && \
+             [ "${{ needs.ui-tests.result }}" = "success" ]; then
+            MESSAGE="✅ Все тесты прошли успешно!"
+          else
+            MESSAGE="❌ Есть ошибки в тестах!"
+          fi
+
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="$MESSAGE"
