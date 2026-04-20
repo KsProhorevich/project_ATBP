@@ -4,10 +4,14 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "test:unit": "jest",
-    "test:api": "cucumber-js",
-    "test:ui": "npx playwright test",
-    "start": "node server.js"
+    "test:unit": "jest --config=jest.config.allure.js",
+    "test:api": "cucumber-js --format json:allure-results/cucumber.json",
+    "test:ui": "npx playwright test --reporter=line,allure-playwright",
+    "start": "node server.js",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "test:all": "npm run test:unit && npm run test:api && npm run test:ui && npm run allure:generate",
+    "allure:serve": "allure serve allure-results"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +21,9 @@
     "@cucumber/cucumber": "^12.7.0",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.5.0",
+    "allure-commandline": "^2.38.1",
+    "allure-cucumberjs": "^3.7.1",
+    "allure-playwright": "^3.7.1",
     "jest": "^30.2.0",
     "supertest": "^7.2.2",
     "wait-on": "^9.0.5"

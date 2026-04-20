@@ -19,7 +19,8 @@ module.exports = defineConfig({
 
   reporter: [
     ['line'],
-    ['html', { outputFolder: 'playwright-report' }]
+    ['html', { outputFolder: 'playwright-report' }],
+    ['allure-playwright', { outputFolder: 'allure-results' }]
   ],
 
   projects: [

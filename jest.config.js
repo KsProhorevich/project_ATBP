@@ -1,10 +1,10 @@
 module.exports = {
+  testEnvironment: 'node',
   testMatch: [
-    "**/*.test.js"
+    '**/__tests__/**/*.test.js',
+    '**/*.test.js'
   ],
   testPathIgnorePatterns: [
-    "/node_modules/",
-    "/e2e/",
-    "/tests/"   // ← важно!
-  ],
+    '<rootDir>/e2e/'
+  ]
 };
